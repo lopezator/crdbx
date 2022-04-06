@@ -4,8 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-
-	"github.com/cockroachdb/cockroach-go/crdb"
+	"github.com/cockroachdb/cockroach-go/v2/crdb"
 	pgx "github.com/jackc/pgx/v4/stdlib" // force psql driver import
 )
 
@@ -14,7 +13,7 @@ func init() {
 	sql.Register("crdbx", &Driver{pgxDriver: &pgx.Driver{}})
 }
 
-// implement database/sql/driver.Conn interface
+// Conn implement database/sql/driver.Conn interface
 type Conn struct {
 	pgxConn pgx.Conn
 }
@@ -36,7 +35,7 @@ func (c *Conn) Begin() (driver.Tx, error) {
 //   encoding all configuration into an string passed to sql.Open, more details here:
 //   https://golang.org/doc/go1.10#database/sql/driver
 
-// implement database/sql/driver.Driver interface
+// Driver implement database/sql/driver.Driver interface
 type Driver struct {
 	pgxDriver *pgx.Driver
 }
@@ -49,7 +48,7 @@ func (d *Driver) Open(name string) (driver.Conn, error) {
 	return &Conn{pgxConn: *conn.(*pgx.Conn)}, nil
 }
 
-// implement database/sql/driver.ExecerContext interface
+// ExecContext implement database/sql/driver.ExecerContext interface
 func (c *Conn) ExecContext(ctx context.Context, query string, argsV []driver.NamedValue) (driver.Result, error) {
 	var result driver.Result
 	if err := crdb.Execute(func() error {
@@ -62,7 +61,7 @@ func (c *Conn) ExecContext(ctx context.Context, query string, argsV []driver.Nam
 	return result, nil
 }
 
-// implement database/sql/driver.QueryerContext interface
+// QueryContext implement database/sql/driver.QueryerContext interface
 func (c *Conn) QueryContext(ctx context.Context, query string, argsV []driver.NamedValue) (driver.Rows, error) {
 	var rows driver.Rows
 	if err := crdb.Execute(func() error {
