@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+
 	"github.com/cockroachdb/cockroach-go/v2/crdb"
 	pgx "github.com/jackc/pgx/v4/stdlib" // force psql driver import
 )
@@ -53,7 +54,7 @@ func (c *Conn) ExecContext(ctx context.Context, query string, argsV []driver.Nam
 	var result driver.Result
 	if err := crdb.Execute(func() error {
 		var err error
-		result, err = c.pgxConn.ExecContext(ctx, query, argsV)
+		result, err = c.pgxConn.ExecContext(crdb.WithMaxRetries(ctx, 5), query, argsV)
 		return err
 	}); err != nil {
 		return nil, err
@@ -66,7 +67,7 @@ func (c *Conn) QueryContext(ctx context.Context, query string, argsV []driver.Na
 	var rows driver.Rows
 	if err := crdb.Execute(func() error {
 		var err error
-		rows, err = c.pgxConn.QueryContext(ctx, query, argsV)
+		rows, err = c.pgxConn.QueryContext(crdb.WithMaxRetries(ctx, 5), query, argsV)
 		return err
 	}); err != nil {
 		return nil, err
