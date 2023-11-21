@@ -1,7 +1,7 @@
 # crdbx - CockroachDB Driver
 
-`crdbx` is a golang database driver that wraps https://github.com/jackc/pgx `database/sql` implementation (stdlib),
-extending it by providing a retry-mechanism for `ExecContext` and `QueryContext` methods suitable to `CockroachDB`.
+`crdbx` is a golang database driver wrapper that extends the  `database/sql` driver interface providing a 
+retry-mechanism for `ExecContext` and `QueryContext` methods suitable to `CockroachDB`.
 
 For the latter, we use https://github.com/cockroachdb/cockroach-go `Execute` function that provides retry mechanism 
 of single statements.

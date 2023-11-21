@@ -7,56 +7,43 @@ import (
 	"os"
 	"testing"
 
+	_ "github.com/jackc/pgx/v5/stdlib" // force psql driver import
 	"github.com/lopezator/crdbx"
 )
 
+// Initialize test variables.
 var (
 	databaseURL *string
 	ctx         context.Context
+	db          *sql.DB
 )
 
+// TestMain initializes the context, parses the flag, if any, and if not, gets the data from the environment,
+// opens the database, runs tests and exits.
 func TestMain(m *testing.M) {
-	// Initialize the context
-	ctx = context.Background()
-
-	// Parse the flag, if any, and if not, get the data from the environment.
 	databaseURL = flag.String("database-url", os.Getenv("DATABASE_URL"), "Database URL")
 	flag.Parse()
-
-	// Register the crdbx driver.
-	if err := crdbx.Register(); err != nil {
+	ctx = context.Background()
+	var err error
+	db, err = crdbx.Open("pgx", *databaseURL, crdbx.WithMaxRetries(5))
+	if err != nil {
 		panic(err)
 	}
-
-	// Run tests and exit.
 	os.Exit(m.Run())
 }
 
+// TestExecContext tests the exec context method.
 func TestExecContext(t *testing.T) {
-	// Open connection to the database.
-	db, err := sql.Open("crdbx", *databaseURL)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Test the exec context method.
-	if _, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS test (id INT PRIMARY KEY)"); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.ExecContext(ctx, "UPSERT INTO test (id) VALUES (1);"); err != nil {
+	// This update is sterile, is just to test that the exec context method works.
+	if _, err := db.ExecContext(ctx, "UPDATE users SET id = 'foo' WHERE ID = 'foo';"); err != nil {
 		t.Fatal(err)
 	}
 }
 
+// TestQueryContext tests the query context method.
 func TestQueryContext(t *testing.T) {
-	// Open connection to the database.
-	db, err := sql.Open("crdbx", *databaseURL)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Test the query context method.
-	if _, err := db.QueryContext(ctx, "SELECT * FROM test"); err != nil {
+	// nolint:gocritic // This select is sterile, is just to test that the query context method works.
+	if _, err := db.QueryContext(ctx, "SELECT id FROM users WHERE id = 'foo'"); err != nil {
 		t.Fatal(err)
 	}
 }
