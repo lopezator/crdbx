@@ -1,0 +1,6 @@
+version: "384"
+
+services:
+  cockroach:
+    image: cockroachdb/cockroach:v23.1.12
+    command: start-single-node --insecure
